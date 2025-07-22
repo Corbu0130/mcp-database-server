@@ -55,6 +55,7 @@ import { SqliteAdapter } from './sqlite-adapter.js';
 import { SqlServerAdapter } from './sqlserver-adapter.js';
 import { PostgresqlAdapter } from './postgresql-adapter.js';
 import { MysqlAdapter } from './mysql-adapter.js';
+import { MariadbAdapter } from './mariadb-adapter.js';
 
 /**
  * Factory function to create the appropriate database adapter
@@ -75,6 +76,8 @@ export function createDbAdapter(type: string, connectionInfo: any): DbAdapter {
       return new PostgresqlAdapter(connectionInfo);
     case 'mysql':
       return new MysqlAdapter(connectionInfo);
+    case 'mariadb':
+      return new MariadbAdapter(connectionInfo);
     default:
       throw new Error(`Unsupported database type: ${type}`);
   }
