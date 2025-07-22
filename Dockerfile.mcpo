@@ -1,0 +1,31 @@
+# Start from Python base image
+FROM python:3.11-slim
+
+# Install Node.js (18.x LTS) and npm
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs python3-pip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Python packages mcpo and uv
+RUN pip install --no-cache-dir mcpo uv
+
+# Set working directory
+WORKDIR /app
+
+# Copy the rest of the application code
+COPY . .
+
+# Copy package files and install dependencies
+RUN npm install
+
+# Build TypeScript
+RUN npm run build
+
+# Expose the port your app runs on
+EXPOSE 3000
+
+# Start the application (adjust if your entry point is different)
+CMD uvx mcpo --port 3000 -- node dist/src/index.js --$DATABASE_TYPE --host $DATABASE_HOST --database $DATABASE_NAME --port $DATABASE_PORT --user $DATABASE_USER
