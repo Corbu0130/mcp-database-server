@@ -245,6 +245,66 @@ The MCP Database Server provides the following tools that Claude can use:
 
 For practical examples of how to use these tools with Claude, see [Usage Examples](docs/usage-examples.md).
 
+## Docker Deployment
+
+You can deploy the MCP Database Server using Docker with API authentication:
+
+### Building the Docker Image
+
+```bash
+docker build -f Dockerfile.mcpo -t mcp-database-server .
+```
+
+### Running with Authentication
+
+Create a `.env` file with your configuration (see `env.example` for reference):
+
+```bash
+# Copy the example environment file
+cp env.example .env
+
+# Edit the .env file with your actual values
+```
+
+Then run the container:
+
+```bash
+docker run --env-file .env -p 3000:3000 mcp-database-server
+```
+
+### Required Environment Variables
+
+- `API_AUTH_TOKEN`: Authentication token for uvx mcpo (required)
+- `DATABASE_TYPE`: Type of database (sqlite, sqlserver, postgresql, mysql, mariadb)
+- `DATABASE_HOST`: Database host (for non-SQLite databases)
+- `DATABASE_NAME`: Database name (for non-SQLite databases)
+- `DATABASE_PORT`: Database port (for non-SQLite databases)
+- `DATABASE_USER`: Database user (for non-SQLite databases)
+- `DATABASE_PASSWORD`: Database password (for non-SQLite databases)
+
+### Example Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  mcp-database-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcpo
+    ports:
+      - "3000:3000"
+    environment:
+      - API_AUTH_TOKEN=your_secure_auth_token_here
+      - DATABASE_TYPE=postgresql
+      - DATABASE_HOST=your-db-host
+      - DATABASE_NAME=your-database
+      - DATABASE_PORT=5432
+      - DATABASE_USER=your-user
+      - DATABASE_PASSWORD=your-password
+    volumes:
+      - ./data:/app/data
+```
+
 ## Additional Documentation
 
 - [SQL Server Setup Guide](docs/sql-server-setup.md): Details on connecting to SQL Server databases

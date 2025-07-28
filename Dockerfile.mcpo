@@ -28,4 +28,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Start the application (adjust if your entry point is different)
-CMD uvx mcpo --port 3000 -- node dist/src/index.js --$DATABASE_TYPE --host $DATABASE_HOST --database $DATABASE_NAME --port $DATABASE_PORT --user $DATABASE_USER
+CMD uvx mcpo -k $API_AUTH_TOKEN --port 3000 -- node dist/src/index.js --$DATABASE_TYPE --host $DATABASE_HOST --database $DATABASE_NAME --port $DATABASE_PORT --user $DATABASE_USER --password $DATABASE_PASSWORD
