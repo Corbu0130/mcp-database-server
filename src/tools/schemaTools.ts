@@ -127,3 +127,121 @@ export async function describeTable(tableName: string) {
     throw new Error(`Error describing table: ${error.message}`);
   }
 } 
+
+/**
+ * Find foreign keys that connect a list of tables in MariaDB
+ * @param tableNames Array of table names to find connections for
+ * @returns Array of foreign key relationships
+ */
+export async function findTableConnections(tableNames: string[]) {
+  try {
+    if (!tableNames || tableNames.length === 0) {
+      throw new Error("At least one table name is required");
+    }
+
+    // Validate that all tables exist
+    const query = getListTablesQuery();
+    const tables = await dbAll(query);
+    const existingTableNames = tables.map(t => t.name);
+    
+    const invalidTables = tableNames.filter(name => !existingTableNames.includes(name));
+    if (invalidTables.length > 0) {
+      throw new Error(`Tables not found: ${invalidTables.join(', ')}`);
+    }
+
+    // Query to find foreign keys that connect the specified tables
+    // This query looks for foreign keys where either the referenced table or the table containing the foreign key
+    // is in our list of tables
+    const fkQuery = `
+      SELECT 
+        TABLE_NAME as table_name,
+        COLUMN_NAME as column_name,
+        REFERENCED_TABLE_NAME as referenced_table_name,
+        REFERENCED_COLUMN_NAME as referenced_column_name,
+        CONSTRAINT_NAME as constraint_name
+      FROM information_schema.KEY_COLUMN_USAGE 
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND REFERENCED_TABLE_NAME IS NOT NULL
+        AND (
+          TABLE_NAME IN (${tableNames.map(() => '?').join(',')})
+          OR REFERENCED_TABLE_NAME IN (${tableNames.map(() => '?').join(',')})
+        )
+      ORDER BY TABLE_NAME, COLUMN_NAME
+    `;
+
+    const params = [...tableNames, ...tableNames]; // Parameters for both IN clauses
+    const foreignKeys = await dbAll(fkQuery, params);
+
+    // Group foreign keys by their connection type
+    const connections: {
+      internal_connections: Array<{
+        from_table: string;
+        from_column: string;
+        to_table: string;
+        to_column: string;
+        constraint_name: string;
+      }>;
+      external_references: Array<{
+        from_table: string;
+        from_column: string;
+        to_table: string;
+        to_column: string;
+        constraint_name: string;
+      }>;
+      external_referenced: Array<{
+        from_table: string;
+        from_column: string;
+        to_table: string;
+        to_column: string;
+        constraint_name: string;
+      }>;
+    } = {
+      internal_connections: [], // Foreign keys between tables in the list
+      external_references: [], // Foreign keys from external tables to our tables
+      external_referenced: []  // Foreign keys from our tables to external tables
+    };
+
+    for (const fk of foreignKeys) {
+      const isInternal = tableNames.includes(fk.table_name) && tableNames.includes(fk.referenced_table_name);
+      
+      if (isInternal) {
+        connections.internal_connections.push({
+          from_table: fk.table_name,
+          from_column: fk.column_name,
+          to_table: fk.referenced_table_name,
+          to_column: fk.referenced_column_name,
+          constraint_name: fk.constraint_name
+        });
+      } else if (tableNames.includes(fk.table_name)) {
+        connections.external_referenced.push({
+          from_table: fk.table_name,
+          from_column: fk.column_name,
+          to_table: fk.referenced_table_name,
+          to_column: fk.referenced_column_name,
+          constraint_name: fk.constraint_name
+        });
+      } else {
+        connections.external_references.push({
+          from_table: fk.table_name,
+          from_column: fk.column_name,
+          to_table: fk.referenced_table_name,
+          to_column: fk.referenced_column_name,
+          constraint_name: fk.constraint_name
+        });
+      }
+    }
+
+    return formatSuccessResponse({
+      requested_tables: tableNames,
+      total_connections_found: foreignKeys.length,
+      connections: connections,
+      summary: {
+        internal_connections_count: connections.internal_connections.length,
+        external_references_count: connections.external_references.length,
+        external_referenced_count: connections.external_referenced.length
+      }
+    });
+  } catch (error: any) {
+    throw new Error(`Error finding table connections: ${error.message}`);
+  }
+} 

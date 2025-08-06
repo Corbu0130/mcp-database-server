@@ -2,7 +2,7 @@ import { formatErrorResponse } from '../utils/formatUtils.js';
 
 // Import all tool implementations
 import { readQuery, writeQuery, exportQuery } from '../tools/queryTools.js';
-import { createTable, alterTable, dropTable, listTables, describeTable } from '../tools/schemaTools.js';
+import { createTable, alterTable, dropTable, listTables, describeTable, findTableConnections } from '../tools/schemaTools.js';
 import { appendInsight, listInsights } from '../tools/insightTools.js';
 
 /**
@@ -118,6 +118,21 @@ export function handleListTools() {
           properties: {},
         },
       },
+      {
+        name: "find_table_connections",
+        description: "Find foreign keys that connect a list of tables in MariaDB",
+        inputSchema: {
+          type: "object",
+          properties: {
+            table_names: { 
+              type: "array", 
+              items: { type: "string" },
+              description: "Array of table names to find connections for"
+            },
+          },
+          required: ["table_names"],
+        },
+      },
     ],
   };
 }
@@ -160,6 +175,9 @@ export async function handleToolCall(name: string, args: any) {
       
       case "list_insights":
         return await listInsights();
+      
+      case "find_table_connections":
+        return await findTableConnections(args.table_names);
       
       default:
         throw new Error(`Unknown tool: ${name}`);

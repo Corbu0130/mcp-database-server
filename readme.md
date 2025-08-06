@@ -111,6 +111,27 @@ Optional parameters:
 - `--ssl`: Enable SSL connection (true/false or object)
 - `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
 
+### MariaDB Database
+
+To use with a MariaDB database:
+
+```
+node dist/src/index.js --mariadb --host <host-name> --database <database-name> --port <port> [--user <username> --password <password>]
+```
+
+Required parameters:
+- `--host`: MariaDB host name or IP address
+- `--database`: Name of the database
+- `--port`: Port number (default: 3306)
+
+Optional parameters:
+- `--user`: Username for MariaDB authentication
+- `--password`: Password for MariaDB authentication
+- `--ssl`: Enable SSL connection (true/false or object)
+- `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
+
+**Note**: MariaDB includes a special tool `find_table_connections` that can discover foreign key relationships between tables. See the [MariaDB Foreign Keys Example](examples/mariadb-foreign-keys-example.md) for detailed usage.
+
 ## Configuring Claude Desktop
 
 ### Direct Usage Configuration
@@ -164,6 +185,19 @@ If you installed the package globally, configure Claude Desktop with:
         "--user", "your-username",
         "--password", "your-password"
       ]
+    },
+    "mariadb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/database-server",
+        "--mariadb",
+        "--host", "your-host-name",
+        "--database", "your-database-name",
+        "--port", "3306",
+        "--user", "your-username",
+        "--password", "your-password"
+      ]
     }
   }
 }
@@ -210,6 +244,18 @@ For local development, configure Claude Desktop to use your locally built versio
       "args": [
         "/absolute/path/to/mcp-database-server/dist/src/index.js",
         "--mysql",
+        "--host", "your-host-name",
+        "--database", "your-database-name",
+        "--port", "3306",
+        "--user", "your-username",
+        "--password", "your-password"
+      ]
+    },
+    "mariadb": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/mcp-database-server/dist/src/index.js",
+        "--mariadb",
         "--host", "your-host-name",
         "--database", "your-database-name",
         "--port", "3306",

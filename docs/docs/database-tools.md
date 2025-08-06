@@ -14,6 +14,7 @@ The MCP Database Server provides a set of tools that Claude can use to interact 
 | `list_tables` | Get a list of all tables | None |
 | `describe_table` | View schema information for a table | `table_name`: Name of table |
 | `export_query` | Export query results as CSV/JSON | `query`: SQL SELECT statement<br/>`format`: "csv" or "json" |
+| `find_table_connections` | Find foreign keys connecting a list of tables (MariaDB) | `table_names`: Array of table names |
 | `append_insight` | Add a business insight to memo | `insight`: Text of insight |
 | `list_insights` | List all business insights | None |
 
@@ -68,6 +69,25 @@ Add an insight that "Sales are 15% higher on weekends compared to weekdays"
 ```
 
 Claude will use the `append_insight` tool to record this information.
+
+### Finding Table Connections (MariaDB)
+
+To discover foreign key relationships between tables in a MariaDB database:
+
+```
+Find all foreign key connections between the users, products, and orders tables
+```
+
+Claude will use the `find_table_connections` tool to identify:
+- **Internal connections**: Foreign keys between tables in your list
+- **External references**: Foreign keys from external tables pointing to your tables  
+- **External referenced**: Foreign keys from your tables pointing to external tables
+
+This is particularly useful for:
+- Understanding database schema relationships
+- Planning database migrations
+- Documenting table dependencies
+- Troubleshooting data integrity issues
 
 ## Best Practices
 
